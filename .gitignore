@@ -1,0 +1,102 @@
+# ---------------------------------------------------------------------------
+# Personal — local only, NEVER pushed.
+# Narrative, coaching notes, LinkedIn drafts — all stay on disk only.
+# ---------------------------------------------------------------------------
+interview-introduction.md
+interview-practice-plan.md
+# All LinkedIn drafts stay local
+linkedin-posts/
+notes/
+# Per-day personal coaching notes
+notes.md
+**/notes.md
+scratch/
+*.private.md
+
+# ---------------------------------------------------------------------------
+# Secrets & credentials — must never reach a public repo.
+# ---------------------------------------------------------------------------
+.env
+.env.*
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+credentials
+.aws/
+kubeconfig
+kubeconfig.*
+*.kubeconfig
+
+# ---------------------------------------------------------------------------
+# Terraform — state files contain secrets in plaintext (DB passwords, tokens).
+# ---------------------------------------------------------------------------
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+!example.tfvars
+!*.example.tfvars
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+tfplan
+*.tfplan
+
+# ---------------------------------------------------------------------------
+# Kubernetes — generated/runtime artifacts.
+# ---------------------------------------------------------------------------
+*-kubeconfig
+kube-config*
+.kube/
+
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# ---------------------------------------------------------------------------
+# Node / Helm
+# ---------------------------------------------------------------------------
+node_modules/
+charts/*.tgz
+*.lock
+
+# ---------------------------------------------------------------------------
+# IDE / OS
+# ---------------------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ---------------------------------------------------------------------------
+# Lab outputs / generated files
+# ---------------------------------------------------------------------------
+output.json
+*.log
+logs/
+tmp/
+.cache/

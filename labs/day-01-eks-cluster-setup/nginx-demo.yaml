@@ -1,0 +1,66 @@
+# Day-01 sample workload.
+# Two replicas of nginx, fronted by a Classic ELB.
+#
+# Why two replicas: never a single-pod prod workload. Two is the minimum
+# that survives a node loss during a rolling update.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels:
+    app: web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0              # zero-downtime: never drop below current count
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits:   { cpu: 200m, memory: 128Mi }
+          # readiness → gates Service traffic. liveness → triggers restart.
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  labels:
+    app: web
+  annotations:
+    # Default LoadBalancer in EKS = Classic ELB. Uncomment for NLB:
+    # service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    # Prod-grade: install AWS Load Balancer Controller and use nlb-ip mode.
+    service.beta.kubernetes.io/aws-load-balancer-name: "day01-web"
+spec:
+  type: LoadBalancer
+  selector:
+    app: web
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
