@@ -10,6 +10,9 @@ notes/
 # Per-day personal coaching notes
 notes.md
 **/notes.md
+# Production-grade eksctl variants are LOCAL ONLY.
+# The repo ships dev/sandbox versions; you maintain prod versions on disk.
+*.prod.yaml
 scratch/
 *.private.md
 
@@ -56,6 +59,14 @@ tfplan
 *-kubeconfig
 kube-config*
 .kube/
+.kubeconfig-*
+
+# ---------------------------------------------------------------------------
+# Per-lab run evidence — cluster-specific IDs, logs, timestamps. Not portable.
+# Each lab's README explains how to regenerate evidence locally.
+# ---------------------------------------------------------------------------
+labs/*/evidence/*
+!labs/*/evidence/.gitkeep
 
 # ---------------------------------------------------------------------------
 # Python

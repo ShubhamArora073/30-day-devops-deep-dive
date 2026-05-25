@@ -1,16 +1,21 @@
-# Day-01 EKS cluster — declarative definition.
+# Day-01 EKS cluster — DEV / sandbox variant. Cheap, reproducible by anyone.
 #
 # Apply:    eksctl create cluster -f eksctl-cluster.yaml
 # Inspect:  eksctl get cluster -f eksctl-cluster.yaml
 # Destroy:  eksctl delete cluster -f eksctl-cluster.yaml
 #
-# Produces:
-#   - 1 EKS control plane (AWS-managed, cross-account ENIs in your VPC)
-#   - 1 VPC (10.0.0.0/16), 2 public + 2 private subnets across 2 AZs
-#   - 1 NAT Gateway (single-AZ — cheap; mention "HA = multi-AZ in prod")
-#   - 1 managed node group (3 × t3.medium spot)
-#   - 4 EKS-managed add-ons (vpc-cni, coredns, kube-proxy, eks-pod-identity-agent)
-#   - OIDC provider attached → IRSA enabled at creation time
+# ─── DEV DESIGN CHOICES (optimised for cost + simplicity) ──────────────────
+#   Endpoint   Public + Private — kubectl from anywhere, worker→API in VPC
+#   HA         2 AZs, single NAT GW — cheap. Single-AZ NAT failure domain.
+#   Nodes      1 managed nodegroup, t3.medium Spot, 2 desired
+#   Logging    audit + authenticator only — minimal CloudWatch cost
+#   Secrets    Default disk encryption only (no envelope encryption on Secrets)
+#   Access     CONFIG_MAP only (legacy aws-auth ConfigMap) — simplest
+# ───────────────────────────────────────────────────────────────────────────
+#
+# Going production? See the "Going Production" section in README.md and the
+# eksctl-cluster.prod.yaml in this folder (gitignored; you'd recreate it
+# locally from the README diff).
 
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
@@ -18,57 +23,51 @@ kind: ClusterConfig
 metadata:
   name: practice-cluster
   region: us-west-2
-  version: "1.30"                    # Pin K8s version — never "latest" in shared envs
+  version: "1.30"
   tags:
     Owner: shubham
     Purpose: devops-practice
     AutoDelete: "true"
 
-# IRSA at creation. Adding OIDC after the fact requires manual stack edits.
+# IRSA at creation — always on, even in dev. OIDC after-the-fact requires
+# manual stack edits, so cheapest to enable now.
 iam:
   withOIDC: true
 
-# Single NAT GW for cost; private endpoint kept ON so node→API stays inside VPC.
 vpc:
   cidr: "10.0.0.0/16"
   nat:
-    gateway: Single
+    gateway: Single                # 1 NAT GW (cheap, single-AZ failure domain)
   clusterEndpoints:
     publicAccess: true
     privateAccess: true
-    # publicAccessCIDRs: ["1.2.3.4/32"]   # lock down to office IP in prod
 
-# Control-plane logging — only audit + authenticator to keep CloudWatch cheap.
 cloudWatch:
   clusterLogging:
-    enableTypes: ["audit", "authenticator"]
+    enableTypes:
+      - audit
+      - authenticator
     logRetentionInDays: 7
 
-# Managed nodegroup. Managed > self-managed: AWS handles AMI patching and
-# graceful drain on rolling updates. Spot for sandbox cost.
 managedNodeGroups:
-  - name: ng-default
+  - name: ng-workload
     amiFamily: AmazonLinux2023
     instanceType: t3.medium
     spot: true
-    desiredCapacity: 3
-    minSize: 2
-    maxSize: 4
+    desiredCapacity: 2
+    minSize: 1
+    maxSize: 3
     volumeSize: 30
     volumeType: gp3
-    privateNetworking: true          # no public IPs on workers
+    privateNetworking: true
     labels:
       role: worker
       lifecycle: spot
-    tags:
-      k8s.io/cluster-autoscaler/enabled: "true"
-      k8s.io/cluster-autoscaler/practice-cluster: "owned"
     iam:
       withAddonPolicies:
         cloudWatch: true
         autoScaler: true
 
-# EKS-managed add-ons → version-locked to cluster, one-click upgrade path.
 addons:
   - name: vpc-cni
     version: latest

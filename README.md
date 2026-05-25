@@ -10,7 +10,7 @@ Hands-on labs covering progressive delivery, GitOps, infrastructure-as-code, clo
 
 | Day | Topic | Folder | Status |
 |----:|-------|--------|--------|
-| 01  | EKS cluster provisioning with `eksctl` (declarative) | [`labs/day-01-eks-cluster-setup`](labs/day-01-eks-cluster-setup) | in progress |
+| 01  | EKS cluster provisioning with `eksctl` (declarative) | [`labs/day-01-eks-cluster-setup`](labs/day-01-eks-cluster-setup) | done |
 | 02  | Argo Rollouts installation + CRD walkthrough | `labs/day-02-argo-rollouts-install` | pending |
 | 03  | Canary deployment with manual promotion | `labs/day-03-canary-manual` | pending |
 | 04  | Automated analysis: error rate + p99 latency rollback | `labs/day-04-analysis-template` | pending |
@@ -41,38 +41,28 @@ Hands-on labs covering progressive delivery, GitOps, infrastructure-as-code, clo
 30-day-devops-deep-dive/
 ├── README.md                 # this file — portfolio landing page
 ├── .gitignore                # excludes secrets, tfstate, kubeconfig, personal notes
-├── scripts/                  # shared helpers (cleanup, AWS creds, etc.)
 └── labs/
     └── day-NN-<topic>/
-        ├── README.md         # what was built + why + gotchas
-        ├── <manifests>.yaml  # the actual IaC / k8s / etc.
-        ├── commands.md       # exact commands run, in order, annotated
-        └── interview-qa.md   # 10–15 questions an interviewer can ask, with model answers
+        ├── README.md         # walkthrough + commands + gotchas + interview Q&A
+        └── <manifests>.yaml  # the actual IaC / k8s / etc.
 ```
 
 ---
 
 ## How to Use This Repo
 
-Each day's folder is self-contained. To replay a day:
+Each day's folder is self-contained. The README walks through setup, run, and teardown commands in order. To replay a day:
 
 ```bash
 cd labs/day-NN-<topic>
-cat README.md          # understand what's being built
-cat commands.md        # follow the exact runbook
-```
-
-When done with a day:
-
-```bash
-bash scripts/cleanup-day-NN.sh    # tear down AWS resources to avoid charges
+cat README.md          # everything you need is here
 ```
 
 ---
 
 ## Cost Discipline
 
-Most labs spin up real AWS resources. The `scripts/` folder contains per-day teardown so nothing lingers overnight. A billing alarm at $50 is the recommended safety net.
+Most labs spin up real AWS resources. Every per-day README ends with the teardown commands in order. A billing alarm at $50 is the recommended safety net.
 
 | Resource | Daily cost (us-west-2) | Lifecycle |
 |---|---|---|
