@@ -198,35 +198,6 @@ version, green RS scales to 0 after `abortScaleDownDelaySeconds`.
 
 ---
 
-## Common gotchas
-
-- **2× compute** — your nodegroup must have headroom for *both* RS at full size for the
-  duration of the cutover. With `replicas: 4` and `resources.requests.cpu: 50m`, that's
-  +200m CPU + 256Mi RAM for the window. On a tight cluster, BG will get stuck `Pending`
-  with `Insufficient cpu/memory` events on the green pods.
-- **`scaleDownDelaySeconds` too short** — if you set it to 0 (or default 30 s), you
-  lose the instant-rollback window. Make it ≥ your typical "oh no" reaction time —
-  60-300 s is normal in prod.
-- **CLB health-check re-convergence** — same gotcha as Day 3: with
-  `externalTrafficPolicy: Local` + Classic ELB, the flip is atomic at the kube-proxy
-  level, but the CLB still re-runs its HealthyThreshold checks against the new set of
-  pods → expect ~60 s of "(52) empty reply from server" against the ELB hostname
-  immediately after `promote`. The atomic flip is real *inside* the cluster.
-- **Database migrations** — BG only works if the new and old versions can coexist
-  with the SAME database. Breaking schema changes need either (a) the
-  expand-and-contract pattern (deploy backward-compatible read code first, migrate,
-  deploy forward code) or (b) a maintenance window. BG doesn't magically solve schema
-  forward/backward compatibility.
-- **Sticky sessions / WebSockets** — atomic flip is HTTP-level. Active connections
-  (gRPC streams, WebSockets) to old blue pods can stay open until the pod is killed
-  at scale-down. Plan for connection drain.
-- **podinfo `/` returns HTML, not JSON** — easy to be tripped by when smoke-testing.
-  Use `/version` (plain text), `/healthz`, `/readyz`, or `/api/info` (JSON) instead.
-  A `grep` pipeline against the HTML root will exit non-zero, making the smoke-test
-  pod look broken when only the verification command is wrong.
-
----
-
 ## Interview Q&A
 
 **Q1. When would you pick Blue-Green over Canary?**
