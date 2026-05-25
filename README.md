@@ -15,7 +15,7 @@ Hands-on labs covering progressive delivery, GitOps, infrastructure-as-code, clo
 | 03  | Canary deployment with manual promotion | [`labs/day-03-canary-manual`](labs/day-03-canary-manual) | done |
 | 04  | Automated canary with Prometheus `AnalysisTemplate` (auto-promote / auto-abort) | [`labs/day-04-analysis-auto-canary`](labs/day-04-analysis-auto-canary) | done |
 | 05  | Blue-Green deployment strategy | [`labs/day-05-blue-green`](labs/day-05-blue-green) | done |
-| 06–07 | Week 1 consolidation & full demo replay | `labs/week-01-consolidation` | pending |
+| 06–07 | Week 1 consolidation: architecture, narrative, replay + teardown scripts | [`labs/week-01-consolidation`](labs/week-01-consolidation) | done |
 | 08  | Terraform fundamentals: VPC, subnets, SGs | `labs/day-08-terraform-vpc` | pending |
 | 09  | Remote state (S3) + locking (DynamoDB) | `labs/day-09-remote-state` | pending |
 | 10  | Reusable modules + per-environment composition | `labs/day-10-modules-envs` | pending |
