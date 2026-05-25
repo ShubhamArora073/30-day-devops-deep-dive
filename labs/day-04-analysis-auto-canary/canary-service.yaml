@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-canary
+  labels:
+    app: web
+spec:
+  type: ClusterIP
+  selector:
+    app: web                # Argo will patch this with the canary pod-template-hash
+  ports:
+    - name: http
+      port: 80
+      targetPort: http      # named port → podinfo's 9898

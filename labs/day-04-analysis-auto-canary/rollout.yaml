@@ -1,0 +1,64 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: web
+  labels:
+    app: web
+spec:
+  replicas: 4
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: podinfo
+          image: ghcr.io/stefanprodan/podinfo:6.7.0
+          ports:
+            - name: http
+              containerPort: 9898
+          env:
+            - name: PODINFO_PORT
+              value: "9898"
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits:   { cpu: 200m, memory: 128Mi }
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+  strategy:
+    canary:
+      canaryService: web-canary
+      stableService: web
+      maxSurge: 25%
+      maxUnavailable: 0
+      steps:
+        - setWeight: 25
+        - pause: { duration: 45s }     # let canary become Ready + Prometheus scrape
+        - analysis:
+            templates:
+              - templateName: success-rate
+            args:
+              - name: pod-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 50
+        - pause: { duration: 30s }
+        - analysis:
+            templates:
+              - templateName: success-rate
+            args:
+              - name: pod-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 75
+        - pause: { duration: 30s }

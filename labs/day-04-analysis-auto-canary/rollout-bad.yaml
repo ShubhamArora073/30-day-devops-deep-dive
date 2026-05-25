@@ -1,0 +1,69 @@
+# Demo B: same Rollout as rollout.yaml but adds PODINFO_RANDOM_ERROR=true
+# to the canary container so podinfo returns 500s on ~50% of requests.
+# Use:  kubectl apply -f rollout-bad.yaml   (then watch the AnalysisRun fail)
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: web
+  labels:
+    app: web
+spec:
+  replicas: 4
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: podinfo
+          image: ghcr.io/stefanprodan/podinfo:6.7.0
+          ports:
+            - name: http
+              containerPort: 9898
+          env:
+            - name: PODINFO_PORT
+              value: "9898"
+            - name: PODINFO_RANDOM_ERROR     # <-- the only diff vs rollout.yaml
+              value: "true"
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits:   { cpu: 200m, memory: 128Mi }
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+  strategy:
+    canary:
+      canaryService: web-canary
+      stableService: web
+      maxSurge: 25%
+      maxUnavailable: 0
+      steps:
+        - setWeight: 25
+        - pause: { duration: 45s }
+        - analysis:
+            templates:
+              - templateName: success-rate
+            args:
+              - name: pod-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 50
+        - pause: { duration: 30s }
+        - analysis:
+            templates:
+              - templateName: success-rate
+            args:
+              - name: pod-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 75
+        - pause: { duration: 30s }

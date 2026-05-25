@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: web-podinfo
+  namespace: default
+  labels:
+    app: web
+spec:
+  selector:
+    matchLabels:
+      app: web              # matches both stable + canary pods
+  podMetricsEndpoints:
+    - port: http            # podinfo serves /metrics on the same port as the app
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s

@@ -13,7 +13,7 @@ Hands-on labs covering progressive delivery, GitOps, infrastructure-as-code, clo
 | 01  | EKS cluster provisioning with `eksctl` (declarative) | [`labs/day-01-eks-cluster-setup`](labs/day-01-eks-cluster-setup) | done |
 | 02  | Argo Rollouts installation + CRD walkthrough | [`labs/day-02-argo-rollouts-install`](labs/day-02-argo-rollouts-install) | done |
 | 03  | Canary deployment with manual promotion | [`labs/day-03-canary-manual`](labs/day-03-canary-manual) | done |
-| 04  | Automated analysis: error rate + p99 latency rollback | `labs/day-04-analysis-template` | pending |
+| 04  | Automated canary with Prometheus `AnalysisTemplate` (auto-promote / auto-abort) | [`labs/day-04-analysis-auto-canary`](labs/day-04-analysis-auto-canary) | done |
 | 05  | Blue-Green deployment strategy | `labs/day-05-blue-green` | pending |
 | 06–07 | Week 1 consolidation & full demo replay | `labs/week-01-consolidation` | pending |
 | 08  | Terraform fundamentals: VPC, subnets, SGs | `labs/day-08-terraform-vpc` | pending |

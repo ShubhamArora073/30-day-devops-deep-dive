@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: success-rate
+spec:
+  args:
+    - name: pod-hash             # bound at runtime to the canary RS pod-template-hash
+  metrics:
+    - name: success-rate
+      interval: 30s
+      count: 3
+      failureLimit: 1            # 2nd Failed probe → AnalysisRun Failed → rollout aborts
+      successCondition: "len(result) == 1 && result[0] >= 0.95"
+      failureCondition: "len(result) == 0 || result[0] < 0.95"
+      provider:
+        prometheus:
+          address: http://kps-kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+          query: |
+            sum(rate(
+              http_requests_total{
+                namespace="default",
+                pod=~"web-{{args.pod-hash}}-.+",
+                status!~"5.."
+              }[1m]
+            ))
+            /
+            sum(rate(
+              http_requests_total{
+                namespace="default",
+                pod=~"web-{{args.pod-hash}}-.+"
+              }[1m]
+            ))
