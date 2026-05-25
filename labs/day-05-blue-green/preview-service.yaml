@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-preview
+  labels:
+    app: web
+spec:
+  type: ClusterIP
+  selector:
+    app: web                # Argo will pin this to the PREVIEW (non-active) RS hash
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

@@ -14,7 +14,7 @@ Hands-on labs covering progressive delivery, GitOps, infrastructure-as-code, clo
 | 02  | Argo Rollouts installation + CRD walkthrough | [`labs/day-02-argo-rollouts-install`](labs/day-02-argo-rollouts-install) | done |
 | 03  | Canary deployment with manual promotion | [`labs/day-03-canary-manual`](labs/day-03-canary-manual) | done |
 | 04  | Automated canary with Prometheus `AnalysisTemplate` (auto-promote / auto-abort) | [`labs/day-04-analysis-auto-canary`](labs/day-04-analysis-auto-canary) | done |
-| 05  | Blue-Green deployment strategy | `labs/day-05-blue-green` | pending |
+| 05  | Blue-Green deployment strategy | [`labs/day-05-blue-green`](labs/day-05-blue-green) | done |
 | 06–07 | Week 1 consolidation & full demo replay | `labs/week-01-consolidation` | pending |
 | 08  | Terraform fundamentals: VPC, subnets, SGs | `labs/day-08-terraform-vpc` | pending |
 | 09  | Remote state (S3) + locking (DynamoDB) | `labs/day-09-remote-state` | pending |

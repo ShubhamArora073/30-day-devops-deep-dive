@@ -1,0 +1,61 @@
+# Optional Day-5 variant: Blue-Green with prePromotionAnalysis.
+# Requires the Day-4 kube-prometheus-stack + analysis-template.yaml +
+# loadgen.yaml still applied so podinfo metrics flow and the
+# success-rate AnalysisTemplate exists.
+#
+# Difference vs rollout.yaml: the controller will NOT flip the activeService
+# until the AnalysisRun against the preview RS reports Successful. Failed
+# analysis → controller aborts and tears down green per
+# abortScaleDownDelaySeconds. Manual `rollouts promote web` is no longer
+# the gating event — Prometheus is.
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: web
+  labels:
+    app: web
+spec:
+  replicas: 4
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: podinfo
+          image: ghcr.io/stefanprodan/podinfo:6.7.0
+          ports:
+            - name: http
+              containerPort: 9898
+          env:
+            - name: PODINFO_PORT
+              value: "9898"
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits:   { cpu: 200m, memory: 128Mi }
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+  strategy:
+    blueGreen:
+      activeService: web
+      previewService: web-preview
+      autoPromotionEnabled: true        # auto-promote IFF prePromotionAnalysis passes
+      scaleDownDelaySeconds: 60
+      abortScaleDownDelaySeconds: 30
+      prePromotionAnalysis:
+        templates:
+          - templateName: success-rate
+        args:
+          - name: pod-hash
+            valueFrom:
+              podTemplateHashValue: Latest

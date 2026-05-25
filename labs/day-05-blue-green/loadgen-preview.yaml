@@ -1,0 +1,34 @@
+# Day-5 loadgen — hits web-preview (the BlueGreen previewService) so that
+# Prometheus has measurable canary/green traffic when prePromotionAnalysis
+# runs. Replaces the Day-4 loadgen.yaml (which targets web-canary, the
+# Canary-strategy service) for the duration of the BG-with-analysis demo.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loadgen
+  namespace: default
+  labels:
+    app: loadgen
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loadgen
+  template:
+    metadata:
+      labels:
+        app: loadgen
+    spec:
+      containers:
+        - name: curl
+          image: curlimages/curl:8.10.1
+          command: [sh, -c]
+          args:
+            - |
+              while true; do
+                curl -s -o /dev/null --max-time 2 "http://web-preview/" || true
+                sleep 0.2
+              done
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits:   { cpu: 100m, memory: 32Mi }

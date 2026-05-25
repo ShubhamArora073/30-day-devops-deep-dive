@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: web
+  labels:
+    app: web
+spec:
+  replicas: 4
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: podinfo
+          image: ghcr.io/stefanprodan/podinfo:6.7.0
+          ports:
+            - name: http
+              containerPort: 9898
+          env:
+            - name: PODINFO_PORT
+              value: "9898"
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits:   { cpu: 200m, memory: 128Mi }
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+  strategy:
+    blueGreen:
+      activeService: web                # ELB-facing: only ever serves the "active" (current blue) RS
+      previewService: web-preview       # in-cluster only: serves the "preview" (incoming green) RS
+      autoPromotionEnabled: false       # require human (or analysis) before the flip
+      scaleDownDelaySeconds: 60         # keep old blue around for 60s after flip → instant rollback window
+      abortScaleDownDelaySeconds: 30    # if aborted, tear down green this many seconds later
+      # prePromotionAnalysis: (optional — would gate the flip on a Prometheus check; see README)
